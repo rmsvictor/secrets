@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
@@ -17,17 +18,14 @@ const userSchema = new mongoose.Schema ({
   password: String
 });
 
+///////LEVEL 2: ENCRYPTION WITH ENVIRONMENTAL VARIABLES IGNORED///////////////
+
+
+userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ['password']});
+
 /////////////////////LEVEL 2: ENCRYPTION////////////////////
-
-const secret = 'Thisisourlittlesecret';
-userSchema.plugin(encrypt, { secret: secret, encryptedFields: ['password']});
-
-/////////////////////LEVEL 2: ENCRYPTION////////////////////
-
 
 const User = new mongoose.model('User', userSchema);
-
-
 
 app.get('/', function(req,res){
   res.render('home.ejs');
