@@ -3,7 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
-const encrypt = require('mongoose-encryption');
+   // const encrypt = require('mongoose-encryption');
+   const md5 = require('md5');
 
 const app = express();
 
@@ -21,9 +22,12 @@ const userSchema = new mongoose.Schema ({
 ///////LEVEL 2: ENCRYPTION WITH ENVIRONMENTAL VARIABLES IGNORED///////////////
 
 
-userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ['password']});
+     // userSchema.plugin(encrypt, {secret: process.env.SECRET, encryptedFields: ['password']});
 
 /////////////////////LEVEL 2: ENCRYPTION////////////////////
+
+
+
 
 const User = new mongoose.model('User', userSchema);
 
@@ -43,7 +47,11 @@ app.get('/register', function(req,res){
 app.post('/register', function(req,res){
  const newUser = new User({
    email: req.body.username,
-   password: req.body.password
+   // password: req.body.password
+
+   /////LEVEL 3 SECURITY: HASHING////
+    password: md5(req.body.password)
+   /////LEVEL 3 HASHING////
  });
 
  newUser.save(function(err){
@@ -57,7 +65,13 @@ app.post('/register', function(req,res){
 
 app.post('/login', function(req,res){
   const username = req.body.username;
-  const password = req.body.password;
+//LEVEL2: ENCRYPTION    const password = req.body.password;
+
+//LEVEL 3: HASHING MD5
+  const password = md5(req.body.password);
+  //LEVEL 3: HASHING MD5
+  
+
 
   User.findOne({email: username}, function(err, foundUser){
     if(err){
