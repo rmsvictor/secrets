@@ -4,7 +4,9 @@ const bodyParser = require('body-parser');
 const ejs = require('ejs');
 const mongoose = require('mongoose');
    // const encrypt = require('mongoose-encryption');
-   const md5 = require('md5');
+   // const md5 = require('md5');
+const bcrypt =  require('bcrypt');
+const saltRounds = 10;
 
 const app = express();
 
@@ -45,32 +47,61 @@ app.get('/register', function(req,res){
 
 /////////////////////LEVEL 1: USERNAME AND PASSWORD////////////////////
 app.post('/register', function(req,res){
- const newUser = new User({
-   email: req.body.username,
-   // password: req.body.password
+
+ // const newUser = new User({
+ //   email: req.body.username,
+   // LEVEL 2 ENCRYPTION
+   //password: req.body.password
+   // LEVEL 2 ENCRYPTION
 
    /////LEVEL 3 SECURITY: HASHING////
-    password: md5(req.body.password)
+    // password: md5(req.body.password)
    /////LEVEL 3 HASHING////
+
+
+
+   /////LEVEL 4 SECURITY: BCRYPT AND SALT////
+   bcrypt.hash(req.body.password, 10, function(err, hash) {
+     const newUser = new User({
+       email: req.body.username,
+       password: hash
+        });
+        newUser.save(function(err){
+          if(err){
+            console.log(err);
+          } else {
+            res.render('secrets.ejs');
+          }
+        });
+       });
+    /////LEVEL 4 SECURITY: BCRYPT AND SALT////
+
+
  });
 
- newUser.save(function(err){
-   if(err){
-     console.log(err);
-   } else {
-     res.render('secrets.ejs');
-   }
- });
-});
+//  newUser.save(function(err){
+//    if(err){
+//      console.log(err);
+//    } else {
+//      res.render('secrets.ejs');
+//    }
+//  });
+// });
 
 app.post('/login', function(req,res){
   const username = req.body.username;
 //LEVEL2: ENCRYPTION    const password = req.body.password;
 
 //LEVEL 3: HASHING MD5
-  const password = md5(req.body.password);
+  // const password = md5(req.body.password);
   //LEVEL 3: HASHING MD5
-  
+
+
+  /////LEVEL 4 SECURITY: BCRYPT AND SALT////
+  const password = req.body.password;
+
+  /////LEVEL 4 SECURITY: BCRYPT AND SALT////
+
 
 
   User.findOne({email: username}, function(err, foundUser){
@@ -78,9 +109,21 @@ app.post('/login', function(req,res){
       console.log(err);
     } else {
       if(foundUser){
-        if(foundUser.password === password){
-          res.render('secrets');
-        }
+        /////LEVEL 4 SECURITY: BCRYPT AND SALT////
+        bcrypt.compare(password, foundUser.password, function(err, result) {
+          if (result === true) {
+                res.render('secrets');
+          }
+        });
+        /////LEVEL 4 SECURITY: BCRYPT AND SALT////
+
+
+      /////LEVEL 3 SECURITY: HASHING////
+        // if(foundUser.password === password){
+        /////LEVEL 3 SECURITY: HASHING////
+
+          // res.render('secrets');
+        // }
       }
     }
   });
